@@ -188,7 +188,7 @@ describe("GET /users", function () {
 /************************************** GET /users/:username */
 
 describe("GET /users/:username", function () {
-  test("works for admin", async function () {
+  test("works for admin w/o jobs", async function () {
     const resp = await request(app)
         .get(`/users/u1`)
         .set("authorization", `Bearer ${u2AdminToken}`);
@@ -199,11 +199,12 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobs: []
       },
     });
   });
 
-  test("works for correct user", async function() {
+  test("works for correct user w/o jobs", async function() {
     const resp = await request(app)
       .get(`/users/u1`)
       .set("authorization", `Bearer ${u1Token}`);
@@ -213,10 +214,35 @@ describe("GET /users/:username", function () {
         firstName: "U1F",
         lastName: "U1L",
         email: "user1@user.com",
+        jobs: [],
         isAdmin: false,
       },
     });
   });
+
+  test("works for admin with jobs", async function() {
+    const resp = await request(app)
+    .get(`/users/u2`)
+    .set("authorization", `Bearer ${u2AdminToken}`);
+    expect(resp.body).toEqual({
+      user: {
+        username: "u2",
+        firstName: "U2F",
+        lastName: "U2L",
+        email: "user2@user.com",
+        jobs: [
+          {
+            id: 1,
+            title: "job 1",
+            salary: 50000,
+            equity: "0",
+            companyHandle: "c1"
+          },
+        ],
+        isAdmin: false,
+      },
+    });
+  })
 
   test("unauth for incorrect user", async function() {
     const resp = await request(app)
@@ -373,5 +399,30 @@ describe("DELETE /users/:username", function () {
         .delete(`/users/nope`)
         .set("authorization", `Bearer ${u2AdminToken}`);
     expect(resp.statusCode).toEqual(404);
+  });
+});
+
+/******************************** POST users/:username/jobs/:id */
+
+describe("POST /users/:username/jobs/:id", function() {
+  test("works for admins", async function () {
+    const resp = await request(app)
+       .post(`/users/u1/jobs/1`)
+       .set("authorization", `Bearer ${u2AdminToken}`);
+    expect(resp.body).toEqual({ applied: 1 });
+  });
+
+  test("works for correct users", async function () {
+    const resp = await request(app)
+       .post(`/users/u1/jobs/1`)
+       .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.body).toEqual({ applied: 1 });
+  });
+
+  test("unauth for incorrect user", async function () {
+    const resp = await request(app)
+    .post(`/users/nope/jobs/1`)
+    .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });
