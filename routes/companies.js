@@ -51,8 +51,25 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
+  // handle invalid input for query string parameter maxEmployees < minEmployees
+  if (req.query.minEmployees && req.query.maxEmployees) {
+    if (req.query.maxEmployees < req.query.minEmployees) {
+      return res.status(400).json({ error: "maxEmployees must be >= minEmployees" });
+    }
+  }
+  // handle receiving invalid input for query string parameter
+  if (req.query) {
+    for (let key in req.query) {
+      // continue fast once correct query string key is provided
+      if (key === "minEmployees" || key === "maxEmployees" || key === "name") {
+        continue;
+      } else {
+        return res.status(400).json({ error: `Invalid query string parameter: ${key}` });
+      }
+    }
+  }
   try {
-    const companies = await Company.findAll();
+    const companies = await Company.findAll(req.query);
     return res.json({ companies });
   } catch (err) {
     return next(err);
