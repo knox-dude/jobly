@@ -79,6 +79,11 @@ router.get("/", async function (req, res, next) {
 
 router.get("/:id", async function (req, res, next) {
   try {
+    // ensure id is an integer
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      throw new BadRequestError("invalid id");
+    }
     const job = await Job.get(req.params.id);
     return res.json({ job });
   } catch (err) {
@@ -93,6 +98,8 @@ router.get("/:id", async function (req, res, next) {
  * fields can be: { title, salary, equity }
  *
  * Returns { id, title, salary, equity, companyHandle }
+ * 
+ * Throws BadRequestError if id is not valid
  *
  * Authorization required: admin
  */
@@ -103,6 +110,11 @@ router.patch("/:id", ensureLoggedIn, ensureAdmin, async function (req, res, next
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
+    }
+    // ensure id is an integer
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      throw new BadRequestError("invalid id");
     }
 
     const job = await Job.update(req.params.id, req.body);
@@ -119,6 +131,11 @@ router.patch("/:id", ensureLoggedIn, ensureAdmin, async function (req, res, next
 
 router.delete("/:id", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
   try {
+    // ensure id is an integer
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      throw new BadRequestError("invalid id");
+    }
     await Job.remove(req.params.id);
     return res.json({ deleted: req.params.id });
   } catch (err) {
