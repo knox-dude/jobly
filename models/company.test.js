@@ -63,6 +63,20 @@ describe("findAll", function () {
     let companies = await Company.findAll();
     expect(companies).toEqual([
       {
+        handle: "a1",
+        name: "A1",
+        description: "Desc4",
+        numEmployees: 5,
+        logoUrl: "http://a1.img",
+      },
+      {
+        handle: "a2",
+        name: "A2",
+        description: "Desc5",
+        numEmployees: 9,
+        logoUrl: "http://a2.img",
+      },
+      {
         handle: "c1",
         name: "C1",
         description: "Desc1",
@@ -85,6 +99,18 @@ describe("findAll", function () {
       },
     ]);
   });
+  test("works: filter by name", async function () {
+    let companies = await Company.findAll({ name: "C1" });
+    expect(companies).toEqual([
+      {
+        handle: "c1",
+        name: "C1",
+        description: "Desc1",
+        numEmployees: 1,
+        logoUrl: "http://c1.img",
+      },
+    ]);
+  })
 });
 
 /************************************** get */
