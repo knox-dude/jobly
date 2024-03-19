@@ -12,10 +12,18 @@ class Job {
    * data should be { title, salary, equity, companyHandle }
    *
    * Returns { id, title, salary, equity, companyHandle }
-   *
+   * 
+   * Throws NotFoundError if companyHandle is not found.
    * */
 
   static async create({ title, salary, equity, companyHandle }) {
+
+    const companyRes = await db.query(
+      `SELECT handle FROM companies WHERE handle = $1`,
+      [companyHandle]
+    );
+
+    if (!companyRes.rows[0]) throw new NotFoundError(`No company: ${companyHandle}`);
 
     const result = await db.query(
       `INSERT INTO jobs
@@ -54,7 +62,7 @@ static buildFindAllSQLWithQueryString(queryString) {
   for (let key in queryString) {
     sql = startedSql ? sql + " AND " : sql + " WHERE ";
     if (key === "title") {
-      sql = sql + ` name ILIKE '%' || $${paramCount} || '%'`;
+      sql = sql + ` title ILIKE '%' || $${paramCount} || '%'`;
     } else if (key === "minSalary") {
       sql = sql + ` salary >= $${paramCount}`;
     } else if (key === "hasEquity") {
