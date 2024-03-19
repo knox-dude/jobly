@@ -204,6 +204,39 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
   }
+
+  /** Applies user for job. Adds a row to applications table.
+   * 
+   * Throws NotFoundError if user is not found or if job is not found.
+   * 
+   * @param {*} username - username to associate with job application
+   * @param {*} jobId - jobId to associate with job application
+   */
+  static async applyForJob(username, jobId) {
+    // throw error if user doesn't exist
+    const userCheck = await db.query(
+      `SELECT username FROM users WHERE username = $1`,
+      [username]
+    );
+    if (!userCheck.rows[0]) {
+      throw new NotFoundError(`No user: ${username}`);
+    };
+    // throw error if job doesn't exist
+    const jobCheck = await db.query(
+      `SELECT id FROM jobs WHERE id = $1`,
+      [jobId]
+    );
+    if (!jobCheck.rows[0]) {
+      throw new NotFoundError(`No job: ${jobId}`);
+    };
+
+    const result = await db.query(
+      `INSERT INTO applications (username, job_id) 
+       VALUES ($1, $2) RETURNING job_id`,
+      [username, jobId]
+    );
+    return result.rows[0].job_id;
+  }
 }
 
 
