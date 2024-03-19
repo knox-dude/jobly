@@ -95,7 +95,23 @@ describe("GET /companies", function () {
           ],
     });
   });
+  test("fails when querystring has invalid fields", async function () {
+    const resp = await request(app)
+      .get("/companies?fakeQueryField=c1&numEmployees=2")
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(400);
+    expect(resp.body.error).toEqual("Invalid query string parameter: fakeQueryField");
+  });
+  test("fails when querystring.minEmployees > querystring.maxEmployees", async function () {
+    const resp = await request(app)
+     .get("/companies?minEmployees=2&maxEmployees=1")
+     .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(400);
+    expect(resp.body.error).toEqual("maxEmployees must be >= minEmployees");
+  });
 
+  // new developer comment: we can probably remove this now since querystring allows this route to fail.
+  // however, we'll keep it since there's no benefit from removing it.
   test("fails: test next() handler", async function () {
     // there's no normal failure event which will cause this route to fail ---
     // thus making it hard to test that the error-handler works with it. This
